@@ -2,42 +2,91 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="%PUBLIC_URL%/connect.webp" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    <meta name="theme-color" content="#10B981" />
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="ConnectLink - Connect. Contribute. Grow" />
+    <meta name="description" content="ConnectLink bridges passionate volunteers with organizations that need their skills. Find meaningful volunteering opportunities or discover incredible talent ready to make a difference." />
+    <meta name="keywords" content="volunteering, volunteers, opportunities, community service, nonprofit, social impact, volunteering platform, connect, contribute, grow" />
+    <meta name="author" content="ConnectLink" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://connectlink.org/" />
+    <meta property="og:title" content="ConnectLink - Connect. Contribute. Grow" />
+    <meta property="og:description" content="ConnectLink bridges passionate volunteers with organizations that need their skills. Find meaningful volunteering opportunities or discover incredible talent." />
+    <meta property="og:image" content="%PUBLIC_URL%/connect-og-image.webp" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://connectlink.org/" />
+    <meta property="twitter:title" content="ConnectLink - Connect. Contribute. Grow" />
+    <meta property="twitter:description" content="ConnectLink bridges passionate volunteers with organizations that need their skills. Find meaningful volunteering opportunities." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/connect-twitter-image.webp" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://connectlink.org/" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "ConnectLink",
+      "url": "https://connectlink.org/",
+      "logo": "https://connectlink.org/connect.webp",
+      "description": "ConnectLink bridges passionate volunteers with organizations that need their skills.",
+      "sameAs": [
+        "https://twitter.com/connectlink",
+        "https://www.facebook.com/connectlink",
+        "https://www.linkedin.com/company/connectlink"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "info@connectlink.org",
+        "contactType": "customer service"
+      }
+    }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    
+    <title>ConnectLink - Connect. Contribute. Grow | Volunteer Matching Platform</title>
+    
+    <style>
+      /* Preload critical fonts */
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      <div style="padding: 20px; text-align: center; font-family: sans-serif;">
+        <h1>JavaScript Required</h1>
+        <p>You need to enable JavaScript to run the ConnectLink application.</p>
+        <p>ConnectLink helps volunteers and organizations connect for meaningful community impact.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>
