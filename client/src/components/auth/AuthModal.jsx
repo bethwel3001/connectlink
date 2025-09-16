@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 
 const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
@@ -11,8 +12,8 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
   const { addNotification } = useNotification();
+  const { login, signup, isLoading } = useAuth();
 
   if (!isOpen) return null;
 
@@ -44,28 +45,26 @@ const AuthModal = ({ isOpen, onClose, defaultMode = 'login' }) => {
     
     if (!validateForm()) return;
 
-    setIsLoading(true);
     setErrors({});
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (isLogin) {
+        await login({ email: formData.email, password: formData.password, userType });
+        addNotification('Welcome back! Successfully logged in.', 'success');
+      } else {
+        await signup({ email: formData.email, password: formData.password, userType });
+        addNotification('Account created successfully!', 'success');
+      }
       
-      const successMessage = isLogin 
-        ? '🎉 Welcome back! Successfully logged in.' 
-        : '✨ Account created successfully!';
-      
-      addNotification(successMessage, 'success');
       setFormData({ email: '', password: '', confirmPassword: '' });
       onClose();
       
-    } catch (err) {
+    } catch (error) {
       const errorMessage = isLogin
-        ? '❌ Login failed. Please check your credentials.'
-        : '❌ Signup failed. Please try again.';
+        ? 'Login failed. Please check your credentials.'
+        : 'Signup failed. Please try again.';
       
       addNotification(errorMessage, 'error');
-    } finally {
-      setIsLoading(false);
     }
   };
 
