@@ -4,10 +4,9 @@ const AuthRedirectAnimation = ({ onAnimationComplete, userType }) => {
   const [stage, setStage] = useState(1); // 1: Connect, 2: Contribute, 3: Grow
 
   useEffect(() => {
-    // Sequence the animation stages
     const timer1 = setTimeout(() => setStage(2), 800);
     const timer2 = setTimeout(() => setStage(3), 1600);
-    const timer3 = setTimeout(() => onAnimationComplete(), 2500); // Total animation time
+    const timer3 = setTimeout(() => onAnimationComplete(), 2500);
 
     return () => {
       clearTimeout(timer1);

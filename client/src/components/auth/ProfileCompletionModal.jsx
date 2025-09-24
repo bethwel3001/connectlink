@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '../ui/Button';
 
-const ProfileCompletionModal = ({ isOpen, onConfirm, onCancel }) => {
+const ProfileCompletionModal = ({ isOpen, onConfirm, onCancel, isLoading }) => {
   if (!isOpen) return null;
 
   return (
@@ -18,19 +18,22 @@ const ProfileCompletionModal = ({ isOpen, onConfirm, onCancel }) => {
           </h2>
           
           <p className="text-gray-600 mb-6">
-            To get the best experience and find relevant opportunities, we need to know a bit more about you. This will only take 2 minutes!
+            To get personalized opportunities and connect with the right organizations, 
+            we need to know more about you. This will only take 2 minutes!
           </p>
 
           <div className="space-y-3">
             <Button
               onClick={onConfirm}
+              disabled={isLoading}
               className="w-full justify-center py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
             >
-              Complete My Profile
+              {isLoading ? 'Loading...' : 'Complete My Profile'}
             </Button>
             
             <Button
               onClick={onCancel}
+              disabled={isLoading}
               variant="outline"
               className="w-full justify-center py-3 border-gray-300 text-gray-700 hover:bg-gray-50"
             >
@@ -39,7 +42,7 @@ const ProfileCompletionModal = ({ isOpen, onConfirm, onCancel }) => {
           </div>
 
           <p className="text-xs text-gray-500 mt-4">
-            You can complete your profile anytime from your settings.
+            You can complete your profile anytime from your dashboard.
           </p>
         </div>
       </div>
