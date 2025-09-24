@@ -1,16 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
+  timeout: 10000, // 10 second timeout
 });
 
-// Add auth token to requests
+// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,51 +20,86 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Handle auth errors
+// Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Token expired or invalid
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
+    
+    // Enhanced error handling
+    if (error.code === 'ECONNABORTED') {
+      error.response = {
+        data: { message: 'Request timeout. Please try again.' }
+      };
+    } else if (!error.response) {
+      error.response = {
+        data: { message: 'Network error. Please check your connection.' }
+      };
+    }
+    
     return Promise.reject(error);
   }
 );
 
-// Auth API calls
+// Auth API
 export const authAPI = {
-  login: (credentials) => api.post('/auth/login', credentials),
-  register: (userData) => api.post('/auth/register', userData),
-  getMe: () => api.get('/auth/me'),
-  updateProfile: (profileData) => api.put('/auth/profile', profileData)
+  login: async (credentials) => {
+    try {
+      const response = await api.post('/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  register: async (userData) => {
+    try {
+      const response = await api.post('/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Registration API error:', error);
+      throw error;
+    }
+  },
+  
+  getMe: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
+  },
 };
 
-// User API calls
-export const userAPI = {
-  getDashboard: () => api.get('/users/dashboard'),
-  getProfile: (id) => api.get(`/users/profile/${id || ''}`),
-  searchUsers: (params) => api.get('/users/search', { params })
+// Users API
+export const usersAPI = {
+  getDashboard: async () => {
+    const response = await api.get('/users/dashboard');
+    return response.data;
+  },
+  
+  updateProfile: async (profileData) => {
+    const response = await api.put('/users/profile', profileData);
+    return response.data;
+  },
 };
 
-// Opportunities API calls
-export const opportunityAPI = {
-  getAll: (params) => api.get('/opportunities', { params }),
-  getById: (id) => api.get(`/opportunities/${id}`),
-  create: (data) => api.post('/opportunities', data),
-  apply: (id, data) => api.post(`/opportunities/${id}/apply`, data)
-};
-
-// Applications API calls
-export const applicationAPI = {
-  getMyApplications: () => api.get('/applications/me'),
-  updateApplication: (id, data) => api.put(`/applications/${id}`, data)
+// Opportunities API
+export const opportunitiesAPI = {
+  getAll: async () => {
+    const response = await api.get('/opportunities');
+    return response.data;
+  },
+  
+  create: async (opportunityData) => {
+    const response = await api.post('/opportunities', opportunityData);
+    return response.data;
+  },
 };
 
 export default api;
