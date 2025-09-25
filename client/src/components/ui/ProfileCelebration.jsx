@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-const ProfileCelebration = ({ onComplete }) => {
+const ProfileCelebration = ({ onComplete, user }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const [step, setStep] = useState(1); // 1: Animation, 2: Message, 3: Completion
+  const [step, setStep] = useState(1);
 
   useEffect(() => {
     const timer1 = setTimeout(() => setStep(2), 1500);
@@ -20,6 +20,8 @@ const ProfileCelebration = ({ onComplete }) => {
   }, [onComplete]);
 
   if (!isVisible) return null;
+
+  const displayName = user?.firstName || 'there';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
@@ -49,18 +51,6 @@ const ProfileCelebration = ({ onComplete }) => {
               <span className="text-3xl">🤝</span>
             </div>
           </div>
-
-          {/* Connecting lines that appear */}
-          <svg width="100%" height="100%" className="absolute inset-0">
-            {step >= 2 && (
-              <>
-                <line x1="50%" y1="50%" x2="25%" y2="25%" stroke="#10b981" strokeWidth="2" className="animate-drawLine" />
-                <line x1="50%" y1="50%" x2="75%" y2="25%" stroke="#10b981" strokeWidth="2" className="animate-drawLine" style={{ animationDelay: '0.1s' }} />
-                <line x1="50%" y1="50%" x2="25%" y2="75%" stroke="#10b981" strokeWidth="2" className="animate-drawLine" style={{ animationDelay: '0.2s' }} />
-                <line x1="50%" y1="50%" x2="75%" y2="75%" stroke="#10b981" strokeWidth="2" className="animate-drawLine" style={{ animationDelay: '0.3s' }} />
-              </>
-            )}
-          </svg>
         </div>
 
         {/* Messages */}
@@ -68,7 +58,7 @@ const ProfileCelebration = ({ onComplete }) => {
           <h2 className="text-2xl font-bold mb-2">
             {step === 1 && 'Building Your Network...'}
             {step === 2 && 'Profile Complete!'}
-            {step === 3 && 'Welcome to the Community!'}
+            {step === 3 && `Welcome, ${displayName}!`}
           </h2>
           
           <p className="text-green-200">
