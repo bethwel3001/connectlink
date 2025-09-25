@@ -14,7 +14,7 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
   const addNotification = (message, type = 'info', duration = 5000) => {
-    const id = Date.now();
+    const id = Date.now() + Math.random();
     const notification = { id, message, type };
     
     setNotifications(prev => [...prev, notification]);
@@ -32,10 +32,15 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));
   };
 
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
   const value = {
     notifications,
     addNotification,
-    removeNotification
+    removeNotification,
+    clearNotifications,
   };
 
   return (
