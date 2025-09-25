@@ -1,28 +1,28 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import Button from '../ui/Button';
 
 const OnboardingWizard = ({ onComplete, onSkip }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    // Personal Info
-    fullName: '',
+    firstName: '',
+    lastName: '',
     age: '',
     gender: '',
-    
-    // Location
     location: '',
     city: '',
-    country: '',
-    
-    // Skills & Interests
     skills: [],
     interests: [],
     specialization: '',
-    
-    // Availability
     availability: 'flexible',
-    commitmentLevel: 'medium'
+    commitmentLevel: 'medium',
+    bio: ''
   });
+
+  const { updateProfile } = useAuth();
+  const { addNotification } = useNotification();
 
   const steps = [
     { number: 1, title: 'Personal Info', icon: '👤' },
@@ -31,17 +31,54 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
     { number: 4, title: 'Availability', icon: '⏰' }
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete(formData);
+      await handleComplete();
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Prepare data for API
+      const profileData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        ...(formData.age && { age: parseInt(formData.age) }),
+        ...(formData.gender && { gender: formData.gender }),
+        ...(formData.location && { location: formData.location.trim() }),
+        ...(formData.city && { city: formData.city.trim() }),
+        ...(formData.skills.length > 0 && { 
+          skills: Array.isArray(formData.skills) ? formData.skills : formData.skills.split(',').map(s => s.trim()).filter(s => s)
+        }),
+        ...(formData.interests.length > 0 && { 
+          interests: Array.isArray(formData.interests) ? formData.interests : formData.interests.split(',').map(i => i.trim()).filter(i => i)
+        }),
+        ...(formData.specialization && { specialization: formData.specialization.trim() }),
+        ...(formData.availability && { availability: formData.availability }),
+        ...(formData.commitmentLevel && { commitmentLevel: formData.commitmentLevel }),
+        ...(formData.bio && { bio: formData.bio.trim() })
+      };
+
+      const result = await updateProfile(profileData);
+      
+      if (result.success) {
+        addNotification('Profile completed successfully!', 'success');
+        onComplete(result.user);
+      }
+    } catch (error) {
+      addNotification('Failed to complete profile. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,15 +91,29 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
       case 1:
         return (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-              <input
-                type="text"
-                value={formData.fullName}
-                onChange={(e) => handleInputChange('fullName', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
-                placeholder="Enter your full name"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
+                  placeholder="Your first name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
+                  placeholder="Your last name"
+                  required
+                />
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -74,6 +125,8 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
                   onChange={(e) => handleInputChange('age', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
                   placeholder="Your age"
+                  min="16"
+                  max="100"
                 />
               </div>
               
@@ -99,38 +152,25 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Location</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
               <input
                 type="text"
                 value={formData.location}
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
-                placeholder="Enter your address or area"
+                placeholder="Your address or area"
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
-                  placeholder="Your city"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                <input
-                  type="text"
-                  value={formData.country}
-                  onChange={(e) => handleInputChange('country', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
-                  placeholder="Your country"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+              <input
+                type="text"
+                value={formData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
+                placeholder="Your city"
+              />
             </div>
           </div>
         );
@@ -153,8 +193,8 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Skills (comma separated)</label>
               <input
                 type="text"
-                value={formData.skills.join(', ')}
-                onChange={(e) => handleInputChange('skills', e.target.value.split(',').map(s => s.trim()))}
+                value={formData.skills}
+                onChange={(e) => handleInputChange('skills', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
                 placeholder="e.g., JavaScript, Teaching, First Aid"
               />
@@ -164,8 +204,8 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Interests</label>
               <input
                 type="text"
-                value={formData.interests.join(', ')}
-                onChange={(e) => handleInputChange('interests', e.target.value.split(',').map(s => s.trim()))}
+                value={formData.interests}
+                onChange={(e) => handleInputChange('interests', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
                 placeholder="e.g., Environment, Education, Technology"
               />
@@ -183,9 +223,9 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
                 onChange={(e) => handleInputChange('availability', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
               >
+                <option value="flexible">Flexible</option>
                 <option value="weekdays">Weekdays</option>
                 <option value="weekends">Weekends</option>
-                <option value="flexible">Flexible</option>
                 <option value="specific">Specific days</option>
               </select>
             </div>
@@ -203,16 +243,36 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
               </select>
             </div>
             
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-green-800">
-                💡 Your availability helps us match you with perfect opportunities!
-              </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+              <textarea
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500"
+                placeholder="Tell us about yourself..."
+                rows="3"
+              />
             </div>
           </div>
         );
 
       default:
         return null;
+    }
+  };
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.firstName.trim() && formData.lastName.trim();
+      case 2:
+        return true; // Location is optional
+      case 3:
+        return true; // Skills are optional
+      case 4:
+        return true; // Availability is optional
+      default:
+        return false;
     }
   };
 
@@ -254,7 +314,7 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
             <Button
               onClick={handleBack}
               variant="outline"
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isLoading}
               className="px-4 py-2"
             >
               Back
@@ -262,9 +322,19 @@ const OnboardingWizard = ({ onComplete, onSkip }) => {
             
             <Button
               onClick={handleNext}
+              disabled={!isStepValid() || isLoading}
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white"
             >
-              {currentStep === steps.length ? 'Complete Profile' : 'Next'}
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </div>
+              ) : currentStep === steps.length ? (
+                'Complete Profile'
+              ) : (
+                'Next'
+              )}
             </Button>
           </div>
         </div>
