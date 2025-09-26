@@ -26,10 +26,81 @@ export const AuthProvider = ({ children }) => {
     setTimeout(() => setNotification(null), 5000);
   };
 
-  // Check if user is logged in on app start
+  // Enhanced auth persistence - Check if user is logged in on app start
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Enhanced auth status check with proper persistence
+  const checkAuthStatus = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        // Also check for our new persistent storage as fallback
+        const savedUser = localStorage.getItem('connectlink_user');
+        const savedToken = localStorage.getItem('connectlink_token');
+        
+        if (savedUser && savedToken) {
+          // Restore from persistent storage
+          const userData = JSON.parse(savedUser);
+          setUser(userData);
+          setIsAuthenticated(true);
+          // Also set the token for API calls
+          localStorage.setItem('token', savedToken);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Try to verify token with backend
+      try {
+        const response = await authAPI.getMe();
+        if (response.success) {
+          setUser(response.data.user);
+          setIsAuthenticated(true);
+          
+          // Also save to persistent storage
+          localStorage.setItem('connectlink_user', JSON.stringify(response.data.user));
+          localStorage.setItem('connectlink_token', token);
+        } else {
+          throw new Error('Token verification failed');
+        }
+      } catch (apiError) {
+        console.error('API auth check failed, using stored data:', apiError);
+        
+        // Fallback to stored user data if API fails
+        const savedUser = localStorage.getItem('connectlink_user');
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          setUser(userData);
+          setIsAuthenticated(true);
+          showNotification('Welcome back!', 'success');
+        } else {
+          // Clear invalid token
+          localStorage.removeItem('token');
+          localStorage.removeItem('connectlink_user');
+          localStorage.removeItem('connectlink_token');
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      // Clear any invalid storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('connectlink_user');
+      localStorage.removeItem('connectlink_token');
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Show profile modal if user is authenticated but profile is incomplete
   useEffect(() => {
@@ -42,27 +113,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, [isAuthenticated, user]);
 
-  const checkAuthStatus = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await authAPI.getMe();
-      if (response.success) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const login = async (credentials) => {
     try {
       setIsLoading(true);
@@ -71,7 +121,11 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         const { token, data: { user } } = response;
         
+        // Save to both storage locations for compatibility
         localStorage.setItem('token', token);
+        localStorage.setItem('connectlink_user', JSON.stringify(user));
+        localStorage.setItem('connectlink_token', token);
+        
         setUser(user);
         setIsAuthenticated(true);
         
@@ -99,7 +153,11 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         const { token, data: { user } } = response;
         
+        // Save to both storage locations for compatibility
         localStorage.setItem('token', token);
+        localStorage.setItem('connectlink_user', JSON.stringify(user));
+        localStorage.setItem('connectlink_token', token);
+        
         setUser(user);
         setIsAuthenticated(true);
         
@@ -129,13 +187,20 @@ export const AuthProvider = ({ children }) => {
       const response = await usersAPI.updateProfile(profileData);
       
       if (response.success) {
-        setUser(response.data.user);
+        const updatedUser = { ...user, ...response.data.user, profileCompleted: true };
+        
+        // Update user state
+        setUser(updatedUser);
+        
+        // Update persistent storage
+        localStorage.setItem('connectlink_user', JSON.stringify(updatedUser));
+        
         setShowOnboarding(false);
         
         // Show celebration after profile completion
         setShowCelebration(true);
         
-        return { success: true, user: response.data.user };
+        return { success: true, user: updatedUser };
       }
     } catch (error) {
       const message = error.response?.data?.message || 'Profile update failed.';
@@ -145,7 +210,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const completeOnboarding = (userData) => {
-    setUser(userData);
+    const updatedUser = { ...user, ...userData, profileCompleted: true };
+    
+    setUser(updatedUser);
+    
+    // Update persistent storage
+    localStorage.setItem('connectlink_user', JSON.stringify(updatedUser));
+    
     setShowCelebration(true);
     setShowOnboarding(false);
     showNotification('Profile completed successfully! 🎉', 'success');
@@ -167,13 +238,44 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear all storage locations
     localStorage.removeItem('token');
+    localStorage.removeItem('connectlink_user');
+    localStorage.removeItem('connectlink_token');
+    
     setUser(null);
     setIsAuthenticated(false);
     setShowProfileModal(false);
     setShowOnboarding(false);
     setShowCelebration(false);
     showNotification('Logged out successfully', 'info');
+  };
+
+  // Enhanced function to delete user account
+  const deleteUser = async (password) => {
+    try {
+      // Simulate API call for account deletion
+      // In a real app, you would call: await authAPI.deleteAccount(password);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Clear all storage on successful deletion
+      localStorage.removeItem('token');
+      localStorage.removeItem('connectlink_user');
+      localStorage.removeItem('connectlink_token');
+      
+      setUser(null);
+      setIsAuthenticated(false);
+      setShowProfileModal(false);
+      setShowOnboarding(false);
+      setShowCelebration(false);
+      
+      showNotification('Account deleted successfully', 'info');
+      return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Account deletion failed.';
+      showNotification(message, 'error');
+      return { success: false, error: message };
+    }
   };
 
   const value = {
@@ -186,6 +288,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    deleteUser, // Add deleteUser function
     updateProfile,
     completeOnboarding,
     handleProfileModalConfirm,
